@@ -21,7 +21,6 @@ parameters:
 - name: EMAIL_RECIPIENT
   description: Email address of the recipient
   required: true
-  value: "tristan.perard@csc.fi"
 
 objects:
 - apiVersion: build.openshift.io/v1
