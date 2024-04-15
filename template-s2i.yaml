@@ -1,0 +1,81 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: okd4-build-python
+message: "App for testing docs.csc.fi and report broken links"
+metadata:
+  annotations:
+    description: "Just a test"
+  name: okd4-build-python
+parameters:
+- name: GITHUB_URL
+  description: URL of the GitHub repo where the app is located
+  required: true
+  value: https://github.com/trispera/okd4-build-python.git
+
+- name: GITHUB_BRANCH
+  description: Branch used in the GitHub repo
+  required: true
+  value: main
+
+- name: EMAIL_RECIPIENT
+  description: Email address of the recipient
+  required: true
+  value: "tristan.perard@csc.fi"
+
+objects:
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: okd4-build-python
+    name: okd4-build-python
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: okd4-build-python:latest
+    source:
+      git:
+        ref: ${GITHUB_BRANCH}
+        uri: ${GITHUB_URL}
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: EMAIL_RECIPIENT
+          value: ${EMAIL_RECIPIENT}
+        from:
+          kind: ImageStreamTag
+          name: python:3.9-ubi8
+          namespace: openshift
+      type: Source
+    triggers:
+      - type: ImageChange
+      - type: ConfigChange
+
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: okd4-build-python
+    name: okd4-build-python
+  spec:
+    lookupPolicy:
+      local: true
+
+- apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    name: okd4-build-python
+  spec:
+    schedule: '0 3 2 * *'
+    jobTemplate:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: okd4-build-python
+                image: okd4-build-python
+            restartPolicy: OnFailure
+
