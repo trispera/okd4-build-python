@@ -1,6 +1,6 @@
-import subprocess
 import smtplib
 import os
+import sys
 from email.message import EmailMessage
 
 EMAIL_RECIPIENT = os.environ['EMAIL_RECIPIENT']
@@ -19,3 +19,5 @@ msg.add_attachment(open(OUTPUTFILE, "r", encoding="utf-8").read(), subtype='txt'
 s = smtplib.SMTP('smtp.pouta.csc.fi')
 s.send_message(msg)
 print("Email sent")
+
+sys.exit()
